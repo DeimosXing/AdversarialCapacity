@@ -38,9 +38,32 @@ test_dataset = datasets.MNIST(root='../data/', train=False, download=True,
 loader_test = torch.utils.data.DataLoader(test_dataset, 
     batch_size=param['test_batch_size'], shuffle=True)
 
+class Net(nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+        self.conv1 = nn.Conv2d(1, 32, 3, 1)
+        self.conv2 = nn.Conv2d(32, 64, 3, 1)
+        # self.dropout1 = nn.Dropout2d(0.25)
+        # self.dropout2 = nn.Dropout2d(0.5)
+        self.fc1 = nn.Linear(9216, 128)
+        self.fc2 = nn.Linear(128, 10)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = F.relu(x)
+        x = self.conv2(x)
+        x = F.max_pool2d(x, 2)
+        # x = self.dropout1(x)
+        x = torch.flatten(x, 1)
+        x = self.fc1(x)
+        x = F.relu(x)
+        # x = self.dropout2(x)
+        x = self.fc2(x)
+        output = F.log_softmax(x, dim=1)
+        return output
 
 # Setup the model
-net = LeNet5()
+net = Net()
 
 if torch.cuda.is_available():
     print('CUDA ensabled.')
@@ -48,8 +71,8 @@ if torch.cuda.is_available():
 net.train()
 
 # Adversarial training setup
-#adversary = FGSMAttack(epsilon=0.3)
-adversary = LinfPGDAttack()
+adversary = FGSMAttack(epsilon=0.3)
+#adversary = LinfPGDAttack()
 
 # Train the model
 criterion = nn.CrossEntropyLoss()
@@ -84,4 +107,4 @@ for epoch in range(param['num_epochs']):
 
 test(net, loader_test)
 
-torch.save(net.state_dict(), 'models/adv_trained_lenet5.pkl')
+torch.save(net.state_dict(), 'models/adv_trained_fgsm.pkl')
