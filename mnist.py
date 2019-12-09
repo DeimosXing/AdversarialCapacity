@@ -76,8 +76,8 @@ def main():
                         help='input batch size for training (default: 64)')
     parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
                         help='input batch size for testing (default: 1000)')
-    parser.add_argument('--epochs', type=int, default=14, metavar='N',
-                        help='number of epochs to train (default: 14)')
+    parser.add_argument('--epochs', type=int, default=1, metavar='N',
+                        help='number of epochs to train (default: 1)')
     parser.add_argument('--lr', type=float, default=1.0, metavar='LR',
                         help='learning rate (default: 1.0)')
     parser.add_argument('--gamma', type=float, default=0.7, metavar='M',
@@ -110,7 +110,7 @@ def main():
     mnist_trainset = dataset_one_against_others(mnist_trainset, 0, True)
     train_loader = torch.utils.data.DataLoader(
         mnist_trainset,
-        batch_size=args.batch_size, shuffle=True, sampler = train_sampler, **kwargs)
+        batch_size=args.batch_size, shuffle=True, **kwargs)
     mnist_testset = datasets.MNIST('./data', train=False, transform=transforms.Compose([
                            transforms.ToTensor(),
                            transforms.Normalize((0.1307,), (0.3081,))
@@ -119,7 +119,7 @@ def main():
     test_sampler = RandomSampler(data_source=mnist_testset, num_samples=10000, replacement=True)
     test_loader = torch.utils.data.DataLoader(
         mnist_testset,
-        batch_size=args.test_batch_size, shuffle=True, sample = test_sampler, **kwargs)
+        batch_size=args.test_batch_size, shuffle=True, **kwargs)
 
     model = Net().to(device)
     if use_cuda:
