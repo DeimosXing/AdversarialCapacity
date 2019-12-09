@@ -6,7 +6,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
-from dataset_utils import dataset_one_against_others
+from dataset_utils import dataset_two_cls
 from torch.utils.data.sampler import RandomSampler
 
 
@@ -107,7 +107,7 @@ def main():
                            transforms.Normalize((0.1307,), (0.3081,))
                        ]))
     train_sampler = RandomSampler(data_source=mnist_trainset, num_samples=10000, replacement=True)
-    mnist_trainset = dataset_one_against_others(mnist_trainset, 0, True)
+    mnist_trainset = dataset_two_cls(mnist_trainset, 3, 7, True)
     train_loader = torch.utils.data.DataLoader(
         mnist_trainset,
         batch_size=args.batch_size, shuffle=True, **kwargs)
@@ -115,7 +115,7 @@ def main():
                            transforms.ToTensor(),
                            transforms.Normalize((0.1307,), (0.3081,))
                        ]))
-    mnist_testset = dataset_one_against_others(mnist_testset, 0, False)
+    mnist_testset = dataset_two_cls(mnist_testset, 3, 7, False)
     test_sampler = RandomSampler(data_source=mnist_testset, num_samples=10000, replacement=True)
     test_loader = torch.utils.data.DataLoader(
         mnist_testset,
