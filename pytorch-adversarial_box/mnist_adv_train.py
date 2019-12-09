@@ -1,110 +1,116 @@
 """
-Adversarially train LeNet-5
+Adversarially train CNN on MNIST
 """
 
 import torch
 import torch.nn as nn
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
-from torch.autograd import Variable
-import torch.nn.functional as F
+import argparse
+import os
 
 from adversarialbox.attacks import FGSMAttack, LinfPGDAttack
 from adversarialbox.train import adv_train, FGSM_train_rnd
 from adversarialbox.utils import to_var, pred_batch, test
+from nets.mnist_nets import Cnn_2_4, Cnn_4_8, Cnn_8_16
 
-from models import LeNet5
+parser = argparse.ArgumentParser(description='PyTorch MNIST adversarial training')
+parser.add_argument('--num-epochs', type=int, default=15, metavar='N',
+                    help='number of epochs to train (default: 15)')
+parser.add_argument('--batch_size', type=int, default=128, metavar='N')
+parser.add_argument('--test_batch_size', type=int, default=100, metavar='N')
+parser.add_argument('--delay', type=int, default=10, metavar='N',
+                    help=' (default: 10)')
+parser.add_argument('--lr', type=float, default=1e-3,
+                    help='learning rate (default: 1e-3)')
+parser.add_argument('--weight_decay', type=float, default=5e-4,
+                    help='weight_decay (default: 5e-4)')
+parser.add_argument('--attacker', type=str, default='fgsm',
+                    help='adversarial attacker to train (default: fgsm)')
+parser.add_argument('--cuda', action='store_true', default=True,
+                    help='enables CUDA training')
+parser.add_argument('--save-path', type=str, default='.',
+                    help='path to save ckpt and results')
 
+def train(net, param, loader_train, adversary):
+    net.train()
+    # Train the model
+    criterion = nn.CrossEntropyLoss()
+    optimizer = torch.optim.SGD(net.parameters(), lr=param['lr'], momentum=0.9,
+        weight_decay=param['weight_decay'])
 
-# Hyper-parameters
-param = {
-    'batch_size': 128,
-    'test_batch_size': 100,
-    'num_epochs': 15,
-    'delay': 10,
-    'learning_rate': 1e-3,
-    'weight_decay': 5e-4,
-}
+    for epoch in range(param['num_epochs']):
+        print('Starting epoch %d / %d' % (epoch + 1, param['num_epochs']))
+        for t, (x, y) in enumerate(loader_train):
 
+            x_var, y_var = to_var(x), to_var(y.long())
+            loss = criterion(net(x_var), y_var)
 
-# Data loaders
-train_dataset = datasets.MNIST(root='../data/',train=True, download=True, 
-    transform=transforms.ToTensor())
-loader_train = torch.utils.data.DataLoader(train_dataset, 
-    batch_size=param['batch_size'], shuffle=True)
+            # adversarial training
+            if epoch+1 > param['delay']:
+                # use predicted label to prevent label leaking
+                y_pred = pred_batch(x, net)
+                x_adv = adv_train(x, y_pred, net, criterion, adversary)
+                x_adv_var = to_var(x_adv)
+                loss_adv = criterion(net(x_adv_var), y_var)
+                loss = (loss + loss_adv) / 2
 
-test_dataset = datasets.MNIST(root='../data/', train=False, download=True, 
-    transform=transforms.ToTensor())
-loader_test = torch.utils.data.DataLoader(test_dataset, 
-    batch_size=param['test_batch_size'], shuffle=True)
+            if (t + 1) % 100 == 0:
+                print('t = %d, loss = %.8f' % (t + 1, loss.item()))
 
-class Net(nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(1, 32, 3, 1)
-        self.conv2 = nn.Conv2d(32, 64, 3, 1)
-        # self.dropout1 = nn.Dropout2d(0.25)
-        # self.dropout2 = nn.Dropout2d(0.5)
-        self.fc1 = nn.Linear(9216, 128)
-        self.fc2 = nn.Linear(128, 10)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
 
-    def forward(self, x):
-        x = self.conv1(x)
-        x = F.relu(x)
-        x = self.conv2(x)
-        x = F.max_pool2d(x, 2)
-        # x = self.dropout1(x)
-        x = torch.flatten(x, 1)
-        x = self.fc1(x)
-        x = F.relu(x)
-        # x = self.dropout2(x)
-        x = self.fc2(x)
-        output = F.log_softmax(x, dim=1)
-        return output
+def main():
+    args = parser.parse_args()
+    param = {k: v for k, v in args._get_kwargs()}
+    # param = {
+    #     'batch_size': 128,
+    #     'test_batch_size': 100,
+    #     'num_epochs': 15,
+    #     'delay': 10,
+    #     'lr': 1e-3,
+    #     'weight_decay': 5e-4,
+    #     'attacker':'fgsm',
+    #     'cuda':False,
+    #     'save_path' : 'models'
+    # }
+    device = torch.device("cuda" if param['cuda'] else "cpu")
+    use_cuda = args.cuda and torch.cuda.is_available()
+    # Data loaders
+    train_dataset = datasets.MNIST(root='../data/', train=True, download=True,
+                                   transform=transforms.ToTensor())
+    loader_train = torch.utils.data.DataLoader(train_dataset,
+                                               batch_size=param['batch_size'], shuffle=True)
+    test_dataset = datasets.MNIST(root='../data/', train=False, download=True,
+                                  transform=transforms.ToTensor())
+    loader_test = torch.utils.data.DataLoader(test_dataset,
+                                              batch_size=param['test_batch_size'], shuffle=True)
 
-# Setup the model
-net = Net()
+    save_dir = param['save_path']
+    ckpt_save_dir = os.path.join(save_dir, 'ckpts')
+    # log_save_dir = os.path.join(save_dir, 'logs')
+    if not os.path.exists(ckpt_save_dir):
+        os.mkdir(ckpt_save_dir)
+    # Adversarial training setup
+    if param['attacker'] == 'fgsm':
+        adversary = FGSMAttack(epsilon=0.3)
+    elif param['attacker'] == 'pgd':
+        adversary = LinfPGDAttack()
+    else:
+        raise RuntimeError('invalid attacker')
+    # Setup the model
+    for capacity, Net in enumerate([Cnn_2_4, Cnn_4_8, Cnn_8_16]):
+        model = Net().to(device)
+        if use_cuda:
+            device_ids = range(torch.cuda.device_count())
+            if device_ids > 1:
+                # Data parallel if # gpu > 1
+                model = torch.nn.DaraParallel(model)
+        train(model, param, loader_train, adversary)
+        test(model, loader_test)
+        torch.save(model.state_dict(), os.path.join(ckpt_save_dir, 'adv_trained_{}_{}.pkl'.format(param['attacker'], capacity)))
 
-if torch.cuda.is_available():
-    print('CUDA ensabled.')
-    net.cuda()
-net.train()
-
-# Adversarial training setup
-adversary = FGSMAttack(epsilon=0.3)
-#adversary = LinfPGDAttack()
-
-# Train the model
-criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.RMSprop(net.parameters(), lr=param['learning_rate'],
-    weight_decay=param['weight_decay'])
-
-for epoch in range(param['num_epochs']):
-
-    print('Starting epoch %d / %d' % (epoch + 1, param['num_epochs']))
-
-    for t, (x, y) in enumerate(loader_train):
-
-        x_var, y_var = to_var(x), to_var(y.long())
-        loss = criterion(net(x_var), y_var)
-
-        # adversarial training
-        if epoch+1 > param['delay']:
-            # use predicted label to prevent label leaking
-            y_pred = pred_batch(x, net)
-            x_adv = adv_train(x, y_pred, net, criterion, adversary)
-            x_adv_var = to_var(x_adv)
-            loss_adv = criterion(net(x_adv_var), y_var)
-            loss = (loss + loss_adv) / 2
-
-        if (t + 1) % 100 == 0:
-            print('t = %d, loss = %.8f' % (t + 1, loss.data[0]))
-
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-
-
-test(net, loader_test)
-
-torch.save(net.state_dict(), 'models/adv_trained_fgsm.pkl')
+if __name__ == '__main__':
+    main()
