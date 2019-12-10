@@ -34,7 +34,7 @@ def to_var(x, requires_grad=False, volatile=False):
     """
     if torch.cuda.is_available():
         x = x.cuda()
-    return Variable(x, requires_grad=requires_grad, volatile=volatile)
+    return Variable(x, requires_grad=requires_grad)
 
 
 def pred_batch(x, model):
@@ -55,12 +55,12 @@ def test(model, loader, blackbox=False, hold_out_size=None):
 
     if blackbox:
         num_samples -= hold_out_size
-
-    for x, y in loader:
-        x_var = to_var(x, volatile=True)
-        scores = model(x_var)
-        _, preds = scores.data.cpu().max(1)
-        num_correct += (preds == y).sum()
+    with torch.no_grad():
+        for x, y in loader:
+            x_var = to_var(x, volatile=True)
+            scores = model(x_var)
+            _, preds = scores.data.cpu().max(1)
+            num_correct += (preds == y).sum()
 
     acc = float(num_correct)/float(num_samples)
     print('Got %d/%d correct (%.2f%%) on the clean data' 

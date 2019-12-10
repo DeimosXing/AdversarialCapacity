@@ -89,10 +89,10 @@ def main():
                                               batch_size=param['test_batch_size'], shuffle=True)
 
     save_dir = param['save_path']
-    ckpt_save_dir = os.path.join(save_dir, 'ckpts')
+    ckpt_save_dir = os.path.join(save_dir, params['attacker'], 'ckpts')
     # log_save_dir = os.path.join(save_dir, 'logs')
     if not os.path.exists(ckpt_save_dir):
-        os.mkdir(ckpt_save_dir)
+        os.makedirs(ckpt_save_dir)
     # Adversarial training setup
     if param['attacker'] == 'fgsm':
         adversary = FGSMAttack(epsilon=0.3)
@@ -104,10 +104,10 @@ def main():
     for capacity, Net in enumerate([Cnn_2_4, Cnn_4_8, Cnn_8_16]):
         model = Net().to(device)
         if use_cuda:
-            device_ids = range(torch.cuda.device_count())
+            device_ids = torch.cuda.device_count()
             if device_ids > 1:
                 # Data parallel if # gpu > 1
-                model = torch.nn.DaraParallel(model)
+                model = torch.nn.DataParallel(model)
         train(model, param, loader_train, adversary)
         test(model, loader_test)
         torch.save(model.state_dict(), os.path.join(ckpt_save_dir, 'adv_trained_{}_{}.pkl'.format(param['attacker'], capacity)))
