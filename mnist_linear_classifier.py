@@ -17,12 +17,15 @@ class Normalizer:
         self.variances = torch.randn(len)
 
     def update(self, x):
-        self.means = np.mean(x.numpy(), axis=0)
-        self.variances = np.sum((x.numpy() - self.biases) ** 2, axis=0) / x.shape[1]
+        self.means = np.mean(x.detach().numpy(), axis=0)
+        self.variances = np.sum((x.detach().numpy() - self.means) ** 2, axis=0) / x.shape[1]
 
     def normalize(self, x):
         # this function returns a numpy array
-        return (x.numpy() - self.means) / self.variances ** 0.5
+        return (x.detach().numpy() - self.means) / self.variances ** 0.5
+
+    def normalize_tensor(self, x):
+        return x - torch.tensor(self.means)
 
 
 class Net(nn.Module):
@@ -52,6 +55,7 @@ class Net(nn.Module):
         self.normalizer.update(x)
         # ------------------------------
         # x = self.dropout2(x)
+        # x = self.normalizer.normalize_tensor(x)
         x = self.fc2(x).view(-1)
         # output = F.log_softmax(x, dim=1)
         return x
@@ -66,6 +70,8 @@ class Net(nn.Module):
         # print(x.shape)
         x = self.fc1(x)
         x = F.relu(x)
+        return x
+
 
 def train(args, model, device, train_loader, optimizer, epoch):
     model.train()
@@ -103,8 +109,20 @@ def test(args, model, device, test_loader):
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
 
-def evaluate_usefulness():
-    
+
+def calculate_usefulness(args, model, device, test_loader):
+    model.eval()
+    mean = 0
+    leng = 0
+    with torch.no_grad():
+        for data, target in test_loader:
+            data, target = data.to(device), target.to(device).float()
+            leng += data.shape[0]
+            features_output = model.normalizer.normalize(model.forward_to_features(data))
+            mean += np.sum(features_output.T * target.detach().numpy(), axis=1)
+
+    mean = mean / leng
+    return mean
 
 
 def main():
@@ -114,8 +132,8 @@ def main():
                         help='input batch size for training (default: 64)')
     parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
                         help='input batch size for testing (default: 1000)')
-    parser.add_argument('--epochs', type=int, default=5, metavar='N',
-                        help='number of epochs to train (default: 14)')
+    parser.add_argument('--epochs', type=int, default=2, metavar='N',
+                        help='number of epochs to train (default: 2)')
     parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
                         help='learning rate (default: 0.001)')
     parser.add_argument('--gamma', type=float, default=0.7, metavar='M',
@@ -131,12 +149,10 @@ def main():
                         help='For Saving the current Model')
     args = parser.parse_args()
     use_cuda = not args.no_cuda and torch.cuda.is_available()
-
     torch.manual_seed(args.seed)
-
     device = torch.device("cuda" if use_cuda else "cpu")
-
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
+
     dataset_mnist_train = datasets.MNIST('../data', train=True, download=True,
                    transform=transforms.Compose([
                        transforms.ToTensor(),
@@ -170,7 +186,8 @@ def main():
         scheduler.step()
 
     if args.save_model:
-        torch.save(model.state_dict(), "mnist_cnn.pt")
+        # torch.save(model.state_dict(), "mnist_cnn.pt")
+        torch.save(model, "mnist_3and7.pt")
 
 
 if __name__ == '__main__':
