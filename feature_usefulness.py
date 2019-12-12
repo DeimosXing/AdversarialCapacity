@@ -8,6 +8,7 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
 
+
 def main():
     # settings
     parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
@@ -58,13 +59,16 @@ def main():
     np.set_printoptions(suppress=True)
     print('model usefulness ',
           model.fc2.weight.detach().numpy() * model.normalizer.variances ** 0.5 * features_usefulness)
-    print('model bias',
-          model.normalizer.means * model.normalizer.variances ** 0.5 * model.fc2.weight.detach().numpy() + model.fc2.bias.detach().numpy())
+    # print('model bias',
+    #       model.normalizer.means * model.normalizer.variances ** 0.5 * model.fc2.weight.detach().numpy() + model.fc2.bias.detach().numpy())
     # print(model.normalizer.means)
     # print(features_usefulness + model.normalizer.means)
     # print(model.normalizer.variances)
     # print(model.fc2.bias)
     # print(model.fc2.weight)
+    print(model.parameters())
+
+    # pgd_attack(model, )
 
 
 if __name__ == '__main__':

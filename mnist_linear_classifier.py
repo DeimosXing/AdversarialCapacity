@@ -7,6 +7,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
+from adversarialbox.utils import to_var
 
 
 class Normalizer:
@@ -25,7 +26,7 @@ class Normalizer:
         return (x.detach().numpy() - self.means) / self.variances ** 0.5
 
     def normalize_tensor(self, x):
-        return x - torch.tensor(self.means)
+        return (x - torch.tensor(self.means)) / torch.tensor(self.variances) ** 0.5
 
 
 class Net(nn.Module):
@@ -119,6 +120,51 @@ def calculate_usefulness(args, model, device, test_loader):
             data, target = data.to(device), target.to(device).float()
             leng += data.shape[0]
             features_output = model.normalizer.normalize(model.forward_to_features(data))
+            print(features_output.shape)
+            print(target.shape)
+            mean += np.sum(features_output.T * target.detach().numpy(), axis=1)
+            print(mean.shape)
+
+    mean = mean / leng
+    return mean
+
+
+def pgd_attack(model, X_nat, y, feature_id, epsilon=0.3, k=40, a=0.01, rand=True):
+    # input one X each time
+    if rand:
+        X = X_nat + np.random.uniform(-epsilon, epsilon,
+                                      X_nat.shape).astype('float32')
+    else:
+        X = np.copy(X_nat)
+
+    for i in range(k):
+        X_var = to_var(torch.from_numpy(X), requires_grad=True)
+        y_var = to_var(torch.tensor(y))
+
+        features_output = model.normalizer.normalize_tensor(model.forward_to_features(X_var))[:, feature_id]
+        loss = y_var * features_output
+        loss.backward()
+        grad = X_var.grad.data.cpu().numpy()
+
+        X += a * np.sign(grad)
+
+        X = np.clip(X, X_nat - epsilon, X_nat + epsilon)
+        X = np.clip(X, 0, 1)  # ensure valid pixel range
+
+    return X
+
+
+def robust_usefulness(args, model, device, test_loader):
+    model.eval()
+    mean = 0
+    leng = 0
+    with torch.no_grad():
+        for data, target in test_loader:
+            data, target = data.to(device), target.to(device).float()
+            leng += data.shape[0]
+            data1 = pgd_attack(model, data, target)
+            features_output = model.normalizer.normalize(model.forward_to_features(data))
+
             mean += np.sum(features_output.T * target.detach().numpy(), axis=1)
 
     mean = mean / leng
