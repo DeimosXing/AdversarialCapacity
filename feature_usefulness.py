@@ -52,13 +52,14 @@ def main():
         dataset_mnist_test_3and7,
         batch_size=args.test_batch_size, shuffle=True, **kwargs)
 
-    print(model.normalizer.means)
+    # print(model.normalizer.means)
     features_usefulness = calculate_usefulness(args, model, device, test_loader)
-    print(features_usefulness)
+    # print(features_usefulness)
 
     np.set_printoptions(suppress=True)
-    print('model usefulness ',
-          model.fc2.weight.detach().numpy() * model.normalizer.variances ** 0.5 * features_usefulness)
+    # print('model usefulness ',
+    #       model.fc2.weight.detach().numpy() * model.normalizer.variances ** 0.5 * features_usefulness)
+
     # print('model bias',
     #       model.normalizer.means * model.normalizer.variances ** 0.5 * model.fc2.weight.detach().numpy() + model.fc2.bias.detach().numpy())
     # print(model.normalizer.means)
@@ -66,9 +67,11 @@ def main():
     # print(model.normalizer.variances)
     # print(model.fc2.bias)
     # print(model.fc2.weight)
-    print(model.parameters())
 
     # pgd_attack(model, )
+    ru = robust_usefulness(args, model, device, test_loader)
+    print("---------------")
+    print(ru)
 
 
 if __name__ == '__main__':

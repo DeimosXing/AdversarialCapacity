@@ -3,12 +3,10 @@
   <component name="ChangeListManager">
     <list default="true" id="005628bf-030e-44d4-b4e1-8e5a0b7b0cba" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/cs294.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/cs294.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/feature_usefulness.py" beforeDir="false" afterPath="$PROJECT_DIR$/feature_usefulness.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mnist_linear_classifier.py" beforeDir="false" afterPath="$PROJECT_DIR$/mnist_linear_classifier.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pytorch-adversarial_box/adversarialbox/attacks.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch-adversarial_box/adversarialbox/attacks.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pytorch-adversarial_box/adversarialbox/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch-adversarial_box/adversarialbox/train.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pytorch-adversarial_box/mnist_adv_train.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch-adversarial_box/mnist_adv_train.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -23,7 +21,7 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pytorch-adversarial_box/mnist_adv_train.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="228">
@@ -35,11 +33,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/feature_usefulness.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="296">
-              <caret line="62" column="6" selection-start-line="62" selection-start-column="6" selection-end-line="62" selection-end-column="6" />
+            <state relative-caret-position="266">
+              <caret line="71" column="22" selection-start-line="71" selection-start-column="22" selection-end-line="71" selection-end-column="22" />
               <folding>
                 <element signature="e#0#37#0" expanded="true" />
               </folding>
@@ -48,10 +46,10 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://D:/Anaconda3/Lib/site-packages/torch/tensor.py">
+        <entry file="file://$USER_HOME$/Anaconda3/Lib/site-packages/torch/nn/modules/conv.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="170">
-              <caret line="345" column="25" selection-start-line="345" selection-start-column="25" selection-end-line="345" selection-end-column="25" />
+            <state relative-caret-position="96">
+              <caret line="341" selection-start-line="341" selection-end-line="341" />
             </state>
           </provider>
         </entry>
@@ -68,8 +66,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pytorch-adversarial_box/adversarialbox/attacks.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="360">
-              <caret line="31" lean-forward="true" selection-start-line="31" selection-end-line="31" />
+            <state relative-caret-position="226">
+              <caret line="31" selection-start-line="31" selection-end-line="31" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
               </folding>
@@ -80,8 +78,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/mnist_linear_classifier.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="399">
-              <caret line="123" column="30" selection-start-line="123" selection-start-column="30" selection-end-line="123" selection-end-column="30" />
+            <state relative-caret-position="171">
+              <caret line="145" column="10" selection-start-line="145" selection-start-column="10" selection-end-line="145" selection-end-column="10" />
               <folding>
                 <element signature="e#0#37#0" expanded="true" />
               </folding>
@@ -120,10 +118,10 @@
         <option value="$USER_HOME$/Anaconda3/Lib/site-packages/torchvision/datasets/__init__.py" />
         <option value="$PROJECT_DIR$/feature_usefulnes.py" />
         <option value="$PROJECT_DIR$/pytorch-adversarial_box/adversarialbox/train.py" />
-        <option value="$PROJECT_DIR$/feature_usefulness.py" />
-        <option value="$PROJECT_DIR$/mnist_linear_classifier.py" />
         <option value="$PROJECT_DIR$/pytorch-adversarial_box/adversarialbox/attacks.py" />
         <option value="$PROJECT_DIR$/pytorch-adversarial_box/mnist_adv_train.py" />
+        <option value="$PROJECT_DIR$/feature_usefulness.py" />
+        <option value="$PROJECT_DIR$/mnist_linear_classifier.py" />
       </list>
     </option>
   </component>
@@ -138,6 +136,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -149,7 +148,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -180,7 +178,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.mnist_adv_train">
+  <component name="RunManager" selected="Python.feature_usefulness">
     <configuration name="feature_usefulness" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="cs294" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -300,9 +298,9 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.mnist_adv_train" />
         <item itemvalue="Python.feature_usefulness" />
         <item itemvalue="Python.mnist_linear_classifier" />
+        <item itemvalue="Python.mnist_adv_train" />
         <item itemvalue="Python.mnist_attack" />
         <item itemvalue="Python.mnist" />
       </list>
@@ -321,23 +319,23 @@
       <workItem from="1575933216335" duration="17818000" />
       <workItem from="1576006295024" duration="10454000" />
       <workItem from="1576089581914" duration="8976000" />
+      <workItem from="1576125886358" duration="7843000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="37248000" />
+    <option name="totallyTimeSpent" value="45091000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-7" y="-7" width="1550" height="838" extended-state="6" />
-    <editor active="true" />
+    <frame x="-6" y="-6" width="1293" height="693" extended-state="6" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.12399464" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.12611157" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.2407932" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.399287" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.30373" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.39786857" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -370,13 +368,23 @@
           <line>4</line>
           <option name="timeStamp" value="8" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mnist_linear_classifier.py</url>
+          <line>156</line>
+          <option name="timeStamp" value="9" />
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
+    <watches-manager>
+      <configuration name="PythonConfigurationType">
+        <watch expression="y_var" />
+      </configuration>
+    </watches-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/AdversarialCapacity$feature_usefulness.coverage" NAME="feature_usefulness Coverage Results" MODIFIED="1576123283483" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/AdversarialCapacity$feature_usefulness.coverage" NAME="feature_usefulness Coverage Results" MODIFIED="1576133413233" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/AdversarialCapacity$mnist_adv_train.coverage" NAME="mnist_adv_train Coverage Results" MODIFIED="1576123385099" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/pytorch-adversarial_box" />
-    <SUITE FILE_PATH="coverage/AdversarialCapacity$mnist_linear_classifier.coverage" NAME="mnist_linear_classifier Coverage Results" MODIFIED="1576092770142" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/AdversarialCapacity$mnist_linear_classifier.coverage" NAME="mnist_linear_classifier Coverage Results" MODIFIED="1576131134048" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python36/Lib/site-packages/torch/nn/modules/conv.py" />
@@ -416,55 +424,16 @@
     <entry file="file://$USER_HOME$/Anaconda3/Lib/site-packages/torchvision/transforms/transforms.py" />
     <entry file="file://$USER_HOME$/Anaconda3/Lib/site-packages/torch/nn/__init__.pyi" />
     <entry file="file://$USER_HOME$/Anaconda3/Lib/site-packages/torch/nn/modules/loss.py" />
-    <entry file="file://$USER_HOME$/Anaconda3/Lib/site-packages/torch/nn/modules/conv.py" />
     <entry file="file://$USER_HOME$/Anaconda3/Lib/site-packages/torch/__init__.pyi" />
-    <entry file="file://$USER_HOME$/.PyCharm2019.1/system/python_stubs/-2036615904/torch/_C/_VariableFunctions.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-2509">
-          <caret line="17" column="6" selection-start-line="17" selection-start-column="6" selection-end-line="17" selection-end-column="6" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://D:/Anaconda3/Lib/site-packages/torch/nn/modules/linear.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1159">
-          <caret line="67" column="8" selection-start-line="67" selection-start-column="8" selection-end-line="67" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://D:/Anaconda3/Lib/site-packages/torch/tensor.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="170">
-          <caret line="345" column="25" selection-start-line="345" selection-start-column="25" selection-end-line="345" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$USER_HOME$/.PyCharm2019.1/system/python_stubs/-2036615904/torch/_C/_VariableFunctions.py" />
+    <entry file="file://D:/Anaconda3/Lib/site-packages/torch/nn/modules/linear.py" />
+    <entry file="file://D:/Anaconda3/Lib/site-packages/torch/tensor.py" />
     <entry file="file://$PROJECT_DIR$/pytorch-adversarial_box/adversarialbox/utils.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="162">
           <caret line="30" column="4" selection-start-line="30" selection-start-column="4" selection-end-line="30" selection-end-column="4" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/feature_usefulness.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="296">
-          <caret line="62" column="6" selection-start-line="62" selection-start-column="6" selection-end-line="62" selection-end-column="6" />
-          <folding>
-            <element signature="e#0#37#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mnist_linear_classifier.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="399">
-          <caret line="123" column="30" selection-start-line="123" selection-start-column="30" selection-end-line="123" selection-end-column="30" />
-          <folding>
-            <element signature="e#0#37#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -476,22 +445,49 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/pytorch-adversarial_box/adversarialbox/attacks.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="360">
-          <caret line="31" lean-forward="true" selection-start-line="31" selection-end-line="31" />
-          <folding>
-            <element signature="e#0#11#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/pytorch-adversarial_box/mnist_adv_train.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="228">
           <caret line="27" column="57" selection-start-line="27" selection-start-column="57" selection-end-line="27" selection-end-column="57" />
           <folding>
             <element signature="e#42#54#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Anaconda3/Lib/site-packages/torch/nn/modules/conv.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="96">
+          <caret line="341" selection-start-line="341" selection-end-line="341" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pytorch-adversarial_box/adversarialbox/attacks.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="226">
+          <caret line="31" selection-start-line="31" selection-end-line="31" />
+          <folding>
+            <element signature="e#0#11#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mnist_linear_classifier.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="171">
+          <caret line="145" column="10" selection-start-line="145" selection-start-column="10" selection-end-line="145" selection-end-column="10" />
+          <folding>
+            <element signature="e#0#37#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/feature_usefulness.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="266">
+          <caret line="71" column="22" selection-start-line="71" selection-start-column="22" selection-end-line="71" selection-end-column="22" />
+          <folding>
+            <element signature="e#0#37#0" expanded="true" />
           </folding>
         </state>
       </provider>

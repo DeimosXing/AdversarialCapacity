@@ -26,7 +26,7 @@ class Normalizer:
         return (x.detach().numpy() - self.means) / self.variances ** 0.5
 
     def normalize_tensor(self, x):
-        return (x - torch.tensor(self.means)) / torch.tensor(self.variances) ** 0.5
+        return (x - torch.tensor(self.means, requires_grad=True)) / torch.tensor(self.variances, requires_grad=True) ** 0.5
 
 
 class Net(nn.Module):
@@ -120,17 +120,15 @@ def calculate_usefulness(args, model, device, test_loader):
             data, target = data.to(device), target.to(device).float()
             leng += data.shape[0]
             features_output = model.normalizer.normalize(model.forward_to_features(data))
-            print(features_output.shape)
-            print(target.shape)
             mean += np.sum(features_output.T * target.detach().numpy(), axis=1)
-            print(mean.shape)
 
     mean = mean / leng
     return mean
 
 
-def pgd_attack(model, X_nat, y, feature_id, epsilon=0.3, k=40, a=0.01, rand=True):
-    # input one X each time
+def pgd_attack(model, X_nat, y, feature_id, epsilon=0.3, k=40, a=0.01, rand=False):
+    # input one sample each time
+    X_nat = X_nat.detach().numpy()
     if rand:
         X = X_nat + np.random.uniform(-epsilon, epsilon,
                                       X_nat.shape).astype('float32')
@@ -139,36 +137,55 @@ def pgd_attack(model, X_nat, y, feature_id, epsilon=0.3, k=40, a=0.01, rand=True
 
     for i in range(k):
         X_var = to_var(torch.from_numpy(X), requires_grad=True)
-        y_var = to_var(torch.tensor(y))
+        X_var = torch.unsqueeze(X_var, 0)
+        y_var = to_var(torch.tensor(y), requires_grad=True)
+        y_var = torch.unsqueeze(y_var, 0)
 
-        features_output = model.normalizer.normalize_tensor(model.forward_to_features(X_var))[:, feature_id]
+        indice = torch.tensor([feature_id])
+        features_output = torch.index_select(model.normalizer.normalize_tensor(model.forward_to_features(X_var)), 1, indice)
+        # print(model.normalizer.normalize_tensor(model.forward_to_features(X_var)))
+        # print("shape:", features_output)
+        # features_output = model.normalizer.normalize_tensor(model.forward_to_features(X_var))[:, feature_id]
+        # print(y_var)
         loss = y_var * features_output
+        y_var.retain_grad()
+        X_var.retain_grad()
+        # print(loss)
         loss.backward()
+        # print("X_var:", X_var)
+        # print(X_var.grad)
         grad = X_var.grad.data.cpu().numpy()
 
-        X += a * np.sign(grad)
+        X += np.squeeze(a * np.sign(grad), axis=0)
 
         X = np.clip(X, X_nat - epsilon, X_nat + epsilon)
         X = np.clip(X, 0, 1)  # ensure valid pixel range
 
-    return X
+    return loss.detach().numpy()
 
 
 def robust_usefulness(args, model, device, test_loader):
     model.eval()
-    mean = 0
     leng = 0
-    with torch.no_grad():
-        for data, target in test_loader:
-            data, target = data.to(device), target.to(device).float()
-            leng += data.shape[0]
-            data1 = pgd_attack(model, data, target)
-            features_output = model.normalizer.normalize(model.forward_to_features(data))
+    for data, target in test_loader:
+        leng += data.shape[0]
 
-            mean += np.sum(features_output.T * target.detach().numpy(), axis=1)
+    output = np.zeros((leng, model.normalizer.len))
+    i = -1
+    for data, target in test_loader:
+        for index in range(data.shape[0]):
+            i += 1
+            datai = data[index]
+            targeti = target[index]
+            for j in range(model.normalizer.len):
+                output[i][j] = pgd_attack(model, datai, targeti, j)
 
-    mean = mean / leng
-    return mean
+        if i <= data.shape[0]:
+            target_cat = target
+        else:
+            target_cat = torch.cat((target_cat, target), 0)
+
+    return np.sum(output.T * target_cat.detach().numpy(), axis=1) / leng
 
 
 def main():
