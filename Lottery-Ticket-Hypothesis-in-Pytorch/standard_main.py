@@ -185,6 +185,7 @@ def main(args, ITE=0):
             # Frequency for Testing
             if iter_ % args.valid_freq == 0:
                 # adv_acc = adv_test(model, test_loader, adversary) # Adv_test
+                model.eval()
                 adv_acc = adv_test(model, device, test_loader)
 
                 # Save Weights
@@ -264,7 +265,7 @@ def main(args, ITE=0):
     plt.xlabel("Unpruned Weights Percentage") 
     plt.ylabel("test standard accuracy") 
     plt.xticks(a, comp, rotation ="vertical") 
-    plt.ylim(0,100)
+    plt.ylim(0,5)
     plt.legend() 
     plt.grid(color="gray") 
     utils.checkdir(f"{os.getcwd()}/plots/lt/standard/{args.arch_type}/{args.dataset}/")
@@ -276,7 +277,7 @@ def main(args, ITE=0):
     plt.xlabel("Unpruned Weights Percentage") 
     plt.ylabel("test adversarial accuracy") 
     plt.xticks(a, comp, rotation ="vertical") 
-    plt.ylim(0,100)
+    plt.ylim(0,5)
     plt.legend() 
     plt.grid(color="gray") 
     utils.checkdir(f"{os.getcwd()}/plots/lt/adversarial/{args.arch_type}/{args.dataset}/")
@@ -323,69 +324,119 @@ def test(model, test_loader, criterion):
         accuracy = 100. * correct / len(test_loader.dataset)
     return accuracy
 
-# Additional Function for Adversarial Testing
-# def adv_test(model, test_loader, adversary):
-        # model.eval()
-        # with torch.no_grad():
-        #     return attack_over_test_data(model=model, adversary=adversary, param=None, loader_test=test_loader)*100
+def project(x, original_x, epsilon, _type='linf'):
+
+    if _type == 'linf':
+        max_x = original_x + epsilon
+        min_x = original_x - epsilon
+
+        x = torch.max(torch.min(x, max_x), min_x)
+
+    elif _type == 'l2':
+        dist = (x - original_x)
+
+        dist = dist.view(x.shape[0], -1)
+
+        dist_norm = torch.norm(dist, dim=1, keepdim=True)
+
+        mask = (dist_norm > epsilon).unsqueeze(2).unsqueeze(3)
+
+        # dist = F.normalize(dist, p=2, dim=1)
+
+        dist = dist / dist_norm
+
+        dist *= epsilon
+
+        dist = dist.view(x.shape)
+
+        x = (original_x + dist) * mask.float() + x * (1 - mask.float())
+
+    else:
+        raise NotImplementedError
+
+    return x
+
 # FGSM attack code
-def fgsm_attack(image, epsilon, data_grad):
-    # Collect the element-wise sign of the data gradient
-    sign_data_grad = data_grad.sign()
-    # Create the perturbed image by adjusting each pixel of the input image
-    perturbed_image = image + epsilon*sign_data_grad
-    # Adding clipping to maintain [0,1] range
-    perturbed_image = torch.clamp(perturbed_image, 0, 1)
-    # Return the perturbed image
-    return perturbed_image
+def fgsm_attack(image, model, epsilon, labels):
+    # # Collect the element-wise sign of the data gradient
+    # sign_data_grad = data_grad.sign()
+    # # Create the perturbed image by adjusting each pixel of the input image
+    # perturbed_image = image + epsilon * sign_data_grad
+    # # Adding clipping to maintain [0,1] range
+    # perturbed_image = torch.clamp(perturbed_image, 0, 1)
+    # # Return the perturbed image
+    # return perturbed_image
+    x = image.clone()
 
-def adv_test( model, device, test_loader, epsilon=0.3):
+    x.requires_grad = True
 
+    model.eval()
+    outputs = model(x)
+
+    loss = F.cross_entropy(outputs, labels)
+
+    grad_outputs = None
+
+    grads = torch.autograd.grad(loss, x, grad_outputs=grad_outputs,
+                                only_inputs=True)[0]
+
+    x.data += epsilon * torch.sign(grads.data)
+
+    # the adversaries' pixel value should within max_x and min_x due
+    # to the l_infinity / l2 restriction
+    x = project(x, image, epsilon)
+    # the adversaries' value should be valid pixel value
+    x.clamp_(0, 1)
+
+    return x
+
+def adv_test(model, device, test_loader, epsilon=0.3):
     # Accuracy counter
     correct = 0
     adv_examples = []
-
+    model.eval()
     # Loop over all examples in test set
     for data, target in test_loader:
-
         # Send the data and label to the device
         data, target = data.to(device), target.to(device)
+        x_var, y_var = to_var(data), to_var(target.long())
 
         # Set requires_grad attribute of tensor. Important for Attack
         data.requires_grad = True
 
         # Forward pass the data through the model
-        output = model(data)
-        init_pred = output.max(1, keepdim=True)[1] # get the index of the max log-probability
-
-        # If the initial prediction is wrong, dont bother attacking, just move on
-        # if init_pred.item() != target.item():
-        #     continue
-
-        # Calculate the loss
-        loss = F.nll_loss(output, target)
-
-        # Zero all existing gradients
-        model.zero_grad()
-
-        # Calculate gradients of model in backward pass
-        loss.backward()
-
-        # Collect datagrad
-        data_grad = data.grad.data
+        # output = model(data)
+        # init_pred = output.max(1, keepdim=True)[1]  # get the index of the max log-probability
+        #
+        # # If the initial prediction is wrong, dont bother attacking, just move on
+        # # if init_pred.item() != target.item():
+        # #     continue
+        #
+        # # Calculate the loss
+        # loss = F.nll_loss(output, target)
+        #
+        # # Zero all existing gradients
+        # model.zero_grad()
+        #
+        # # Calculate gradients of model in backward pass
+        # loss.backward()
+        #
+        # # Collect datagrad
+        # data_grad = data.grad.data
 
         # Call FGSM Attack
-        perturbed_data = fgsm_attack(data, epsilon, data_grad)
-
+        x_adv = fgsm_attack(x_var, model, 0.3, y_var)
+        x_adv_var = to_var(x_adv)
+        output = model(x_adv_var)
         # Re-classify the perturbed image
-        output = model(perturbed_data)
+        # output = model(perturbed_data)
 
         # Check for success
-        final_pred = output.max(1, keepdim=True)[1] # get the index of the max log-probability
-        correct += final_pred.eq(target.data.view_as(final_pred)).sum().item()
+        final_pred = output.max(1, keepdim=True)[1]  # get the index of the max log-probability
+        correct += final_pred.eq(y_var.data.view_as(final_pred)).sum().item()
         # if final_pred.item() == target.item():
         #     correct += 1
-            # Special case for saving 0 epsilon examples
+        # Special case for saving 0 epsilon examples
         #     if (epsilon == 0) and (len(adv_examples) < 5):
         #         adv_ex = perturbed_data.squeeze().detach().cpu().numpy()
         #         adv_examples.append( (init_pred.item(), final_pred.item(), adv_ex) )
@@ -396,12 +447,92 @@ def adv_test( model, device, test_loader, epsilon=0.3):
         #         adv_examples.append( (init_pred.item(), final_pred.item(), adv_ex) )
 
     # Calculate final accuracy for this epsilon
-    final_acc = correct/float(len(test_loader.dataset))
-    print("Epsilon: {}\tTest Accuracy = {} / {} = {}".format(epsilon, correct, len(test_loader), final_acc))
-
+    # final_acc = correct / float(len(test_loader))
+    # print("Epsilon: {}\tTest Accuracy = {} / {} = {}".format(epsilon, correct, len(test_loader), final_acc))
+    final_acc = correct / (float(len(test_loader.dataset)))
+    print("Epsilon: {}\tTest Accuracy = {} / {} = {}".format(epsilon, correct, len(test_loader),
+                                                             final_acc))
     # Return the accuracy and an adversarial example
-    return final_acc
-                    
+    return final_acc*100.0
+
+# Additional Function for Adversarial Testing
+# def adv_test(model, test_loader, adversary):
+        # model.eval()
+        # with torch.no_grad():
+        #     return attack_over_test_data(model=model, adversary=adversary, param=None, loader_test=test_loader)*100
+# FGSM attack code
+# def fgsm_attack(image, epsilon, data_grad):
+#     # Collect the element-wise sign of the data gradient
+#     sign_data_grad = data_grad.sign()
+#     # Create the perturbed image by adjusting each pixel of the input image
+#     perturbed_image = image + epsilon*sign_data_grad
+#     # Adding clipping to maintain [0,1] range
+#     perturbed_image = torch.clamp(perturbed_image, 0, 1)
+#     # Return the perturbed image
+#     return perturbed_image
+#
+# def adv_test( model, device, test_loader, epsilon=0.3):
+#
+#     # Accuracy counter
+#     correct = 0
+#     adv_examples = []
+#
+#     # Loop over all examples in test set
+#     for data, target in test_loader:
+#
+#         # Send the data and label to the device
+#         data, target = data.to(device), target.to(device)
+#         # Set requires_grad attribute of tensor. Important for Attack
+#         data.requires_grad = True
+#
+#         # Forward pass the data through the model
+#         output = model(data)
+#         init_pred = output.max(1, keepdim=True)[1] # get the index of the max log-probability
+#
+#         # If the initial prediction is wrong, dont bother attacking, just move on
+#         # if init_pred.item() != target.item():
+#         #     continue
+#
+#         # Calculate the loss
+#         loss = F.nll_loss(output, target)
+#
+#         # Zero all existing gradients
+#         model.zero_grad()
+#
+#         # Calculate gradients of model in backward pass
+#         loss.backward()
+#
+#         # Collect datagrad
+#         data_grad = data.grad.data
+#
+#         # Call FGSM Attack
+#         perturbed_data = fgsm_attack(data, epsilon, data_grad)
+#
+#         # Re-classify the perturbed image
+#         output = model(perturbed_data)
+#
+#         # Check for success
+#         final_pred = output.max(1, keepdim=True)[1] # get the index of the max log-probability
+#         correct += final_pred.eq(target.data.view_as(final_pred)).sum().item()
+#         # if final_pred.item() == target.item():
+#         #     correct += 1
+#             # Special case for saving 0 epsilon examples
+#         #     if (epsilon == 0) and (len(adv_examples) < 5):
+#         #         adv_ex = perturbed_data.squeeze().detach().cpu().numpy()
+#         #         adv_examples.append( (init_pred.item(), final_pred.item(), adv_ex) )
+#         # else:
+#         #     # Save some adv examples for visualization later
+#         #     if len(adv_examples) < 5:
+#         #         adv_ex = perturbed_data.squeeze().detach().cpu().numpy()
+#         #         adv_examples.append( (init_pred.item(), final_pred.item(), adv_ex) )
+#
+#     # Calculate final accuracy for this epsilon
+#     final_acc = correct/(float(len(test_loader.dataset))*args.batch_size)
+#     print("Epsilon: {}\tTest Accuracy = {} / {} = {}".format(epsilon, correct, len(test_loader)*args.batch_size, final_acc))
+#
+#     # Return the accuracy and an adversarial example
+#     return final_acc*100.
+
 # Prune by Percentile module
 def prune_by_percentile(percent, resample=False, reinit=False,**kwargs):
         global step
