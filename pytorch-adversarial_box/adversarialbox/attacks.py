@@ -43,6 +43,20 @@ class FGSMAttack(object):
 
         return X
 
+    def grad(self, X_nat, y):
+        X = np.copy(X_nat)
+
+        X_var = to_var(torch.from_numpy(X), requires_grad=True)
+        y_var = to_var(torch.LongTensor(y))
+
+        scores = self.model(X_var)
+        loss = self.loss_fn(scores, y_var)
+        loss.backward()
+
+        grad = X_var.grad.data.cpu().numpy()
+        return grad
+
+
 
 class LinfPGDAttack(object):
     def __init__(self, model=None, epsilon=0.3, k=40, a=0.01, 
@@ -60,11 +74,13 @@ class LinfPGDAttack(object):
         self.rand = random_start
         self.loss_fn = nn.CrossEntropyLoss()
 
-    def perturb(self, X_nat, y):
+    def perturb(self, X_nat, y, X_ori=None):
         """
         Given examples (X_nat, y), returns adversarial
         examples within epsilon of X_nat in l_infinity norm.
         """
+        if X_ori is None:
+            X_ori = X_nat
         if self.rand:
             X = X_nat + np.random.uniform(-self.epsilon, self.epsilon,
                 X_nat.shape).astype('float32')
@@ -82,10 +98,23 @@ class LinfPGDAttack(object):
 
             X += self.a * np.sign(grad)
 
-            X = np.clip(X, X_nat - self.epsilon, X_nat + self.epsilon)
+            X = np.clip(X, X_ori - self.epsilon, X_ori + self.epsilon)
             X = np.clip(X, 0, 1) # ensure valid pixel range
 
         return X
+
+    def grad(self, X_nat, y):
+        X = np.copy(X_nat)
+
+        X_var = to_var(torch.from_numpy(X), requires_grad=True)
+        y_var = to_var(torch.LongTensor(y))
+
+        scores = self.model(X_var)
+        loss = self.loss_fn(scores, y_var)
+        loss.backward()
+
+        grad = X_var.grad.data.cpu().numpy()
+        return grad
 
 
 # --- Black-box attacks ---

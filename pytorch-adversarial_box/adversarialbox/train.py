@@ -35,6 +35,32 @@ def adv_train(X, y, model, criterion, adversary):
     return torch.from_numpy(X_adv)
 
 
+def adv_train_grad(X, y, model, criterion, adversary, X_ori=None):
+    """
+    Adversarial training. Returns pertubed mini batch.
+    """
+
+    # If adversarial training, need a snapshot of
+    # the model at each batch to compute grad, so
+    # as not to mess up with the optimization step
+    model_cp = copy.deepcopy(model)
+    for p in model_cp.parameters():
+        p.requires_grad = False
+    model_cp.eval()
+
+    adversary.model = model_cp
+
+    if X_ori:
+        X_adv = adversary.perturb(X.detach().numpy(), y, X_ori.detach().numpy())
+    else:
+        X_adv = adversary.perturb(X.detach().numpy(), y)
+
+    grad = adversary.grad(X.detach().numpy(), y)
+
+    # return torch.from_numpy(X_adv)
+    return torch.from_numpy(X_adv), torch.from_numpy(grad)
+
+
 def FGSM_train_rnd(X, y, model, criterion, fgsm_adversary, epsilon_max=0.3):
     """
     FGSM with epsilon sampled from a truncated normal distribution.

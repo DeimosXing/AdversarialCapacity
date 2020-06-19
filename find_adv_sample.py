@@ -1,7 +1,3 @@
-"""
-Adversarially train LeNet-5
-"""
-
 import torch
 import torch.nn as nn
 import torchvision.datasets as datasets
@@ -103,13 +99,16 @@ for x, y in loader_test:
     scores = net(x_adv_var)
     x_var = x.to(device)
     scores1 = net(x_var)
+    # print(scores.data.cpu()[1].shape)
     _, preds = scores.data.cpu().max(1)
     _, preds1 = scores1.data.cpu().max(1)
     t = 0
     for i in range(90):
+        break
         # if preds[i] != preds1[i] and y[i] == 7:
-        if y[i] == preds1[i] == 7 and preds[i] == 4:
+        # if y[i] == preds1[i] == 7 and preds[i] == 4:
         # if y[i] == 2:
+        if preds1[i] == y[i] and preds[i] != preds1[i] and torch.abs(scores1.data.cpu()[i][preds1[i]] - scores1.data.cpu()[i][preds[i]]) < 1:
             t = i
             break
     img = np.array(x_adv[t], dtype='float')
@@ -132,4 +131,4 @@ for x, y in loader_test:
     break
 
 
-adv_test(net, loader_test)
+# adv_test(net, loader_test)

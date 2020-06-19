@@ -67,7 +67,8 @@ def adv_test(model, loader, blackbox=False, hold_out_size=None, epsilon=0.3):
     for x, y in loader:
         # x_var = to_var(x, volatile=True)
         # x_adv = adv_train(x, y, model, nn.CrossEntropyLoss(), LinfPGDAttack(epsilon=epsilon))
-        x_adv = FGSM_train_rnd(x, y, model, nn.CrossEntropyLoss(), FGSMAttack(), epsilon_max=epsilon)
+        x_adv = adv_train(x, y, model, nn.CrossEntropyLoss(), FGSMAttack(epsilon=epsilon))
+        # x_adv = FGSM_train_rnd(x, y, model, nn.CrossEntropyLoss(), FGSMAttack(), epsilon_max=epsilon)
         x_adv_var = x_adv.to(device)
         scores = model(x_adv_var)
         _, preds = scores.data.cpu().max(1)
